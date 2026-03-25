@@ -29,9 +29,18 @@ const tooltip = d3.select("#tooltip");
 const zoomInButton = d3.select("#zoom-in");
 const zoomOutButton = d3.select("#zoom-out");
 const zoomResetButton = d3.select("#zoom-reset");
+const brushToggleButton = d3.select("#brush-toggle");
+const selectionSummary = d3.select("#selection-summary");
 const viewport = svg.append("g").attr("class", "viewport");
 const mapLayer = viewport.append("g").attr("class", "map-layer");
 const pointLayer = viewport.append("g").attr("class", "point-layer");
+const brushLayer = svg.append("g").attr("class", "brush-layer");
+
+const interactionState = {
+  selectedIds: new Set(),
+  currentTransform: d3.zoomIdentity,
+  brushEnabled: false
+};
 
 mapLayer.append("rect")
   .attr("class", "map-google-water")
@@ -117,6 +126,36 @@ d3.json(MS_GEOJSON_URL).then((geojson) => {
     d.y = xy ? xy[1] : HEIGHT / 2;
   });
 
+  const pointQuadtree = d3.quadtree()
+    .x((d) => d.x)
+    .y((d) => d.y);
+
+  function rebuildQuadtree() {
+    pointQuadtree.removeAll(UP_POINTS);
+    pointQuadtree.addAll(UP_POINTS);
+  }
+
+  rebuildQuadtree();
+
+  function updateSelectionSummary() {
+    selectionSummary.text(`Selecionados: ${interactionState.selectedIds.size} de ${UP_POINTS.length} UPs`);
+  }
+
+  function renderSelection(points) {
+    const hasSelection = interactionState.selectedIds.size > 0;
+    points
+      .classed("is-selected", (d) => interactionState.selectedIds.has(d.up))
+      .classed("is-muted", (d) => hasSelection && !interactionState.selectedIds.has(d.up));
+
+    updateSelectionSummary();
+  }
+
+  function setSingleSelection(pointData, points) {
+    interactionState.selectedIds.clear();
+    if (pointData) interactionState.selectedIds.add(pointData.up);
+    renderSelection(points);
+  }
+
   const points = pointLayer.selectAll("g.up-point")
     .data(UP_POINTS)
     .join("g")
@@ -133,10 +172,33 @@ d3.json(MS_GEOJSON_URL).then((geojson) => {
       tooltip.attr("hidden", true);
     });
 
+  points.on("click", (event, d) => {
+    event.stopPropagation();
+
+    if (event.shiftKey || event.ctrlKey || event.metaKey) {
+      if (interactionState.selectedIds.has(d.up)) {
+        interactionState.selectedIds.delete(d.up);
+      } else {
+        interactionState.selectedIds.add(d.up);
+      }
+      renderSelection(points);
+      return;
+    }
+
+    setSingleSelection(d, points);
+  });
+
   points.append("circle")
     .attr("class", "up-point-outer")
-    .attr("r", (d) => d.radius)
+    .attr("r", 0)
     .attr("fill", (d) => COLORS[d.bucket]);
+
+  points.select(".up-point-outer")
+    .transition()
+    .duration(700)
+    .delay((d, i) => i * 35)
+    .ease(d3.easeBackOut.overshoot(1.1))
+    .attr("r", (d) => d.radius);
 
   points.append("circle")
     .attr("class", "up-point-core")
@@ -146,13 +208,115 @@ d3.json(MS_GEOJSON_URL).then((geojson) => {
   points.append("text")
     .attr("class", "up-point-label")
     .attr("y", (d) => -(d.radius + 6))
+    .style("opacity", 0)
     .text((d) => d.up);
+
+  points.select(".up-point-label")
+    .transition()
+    .duration(450)
+    .delay((d, i) => 240 + i * 18)
+    .style("opacity", 1);
+
+  const dragBehavior = d3.drag()
+    .on("start", (event, d) => {
+      event.sourceEvent.stopPropagation();
+      d3.select(event.currentTarget)
+        .raise()
+        .classed("is-dragging", true);
+
+      setSingleSelection(d, points);
+    })
+    .on("drag", (event, d) => {
+      d.x = event.x;
+      d.y = event.y;
+
+      d3.select(event.currentTarget)
+        .attr("transform", `translate(${d.x},${d.y})`);
+
+      rebuildQuadtree();
+    })
+    .on("end", (event) => {
+      d3.select(event.currentTarget).classed("is-dragging", false);
+      rebuildQuadtree();
+    });
+
+  points.call(dragBehavior);
+
+  const brushBehavior = d3.brush()
+    .extent([[0, 0], [WIDTH, HEIGHT]])
+    .on("brush end", (event) => {
+      if (!interactionState.brushEnabled) return;
+
+      const selection = event.selection;
+      if (!selection) {
+        interactionState.selectedIds.clear();
+        renderSelection(points);
+        return;
+      }
+
+      const [[x0, y0], [x1, y1]] = selection;
+      interactionState.selectedIds.clear();
+
+      UP_POINTS.forEach((d) => {
+        const sx = interactionState.currentTransform.applyX(d.x);
+        const sy = interactionState.currentTransform.applyY(d.y);
+        if (sx >= x0 && sx <= x1 && sy >= y0 && sy <= y1) {
+          interactionState.selectedIds.add(d.up);
+        }
+      });
+
+      renderSelection(points);
+
+      if (event.type === "end") {
+        brushLayer.call(brushBehavior.move, null);
+      }
+    });
+
+  brushLayer.call(brushBehavior);
+
+  function setBrushMode(enabled) {
+    interactionState.brushEnabled = enabled;
+    brushToggleButton
+      .classed("is-active", enabled)
+      .attr("aria-pressed", enabled ? "true" : "false");
+
+    brushLayer.style("pointer-events", enabled ? "all" : "none");
+    svg.style("cursor", enabled ? "crosshair" : "grab");
+
+    if (!enabled) {
+      brushLayer.call(brushBehavior.move, null);
+    }
+  }
+
+  setBrushMode(false);
+
+  brushToggleButton.on("click", () => {
+    setBrushMode(!interactionState.brushEnabled);
+  });
+
+  svg.on("click", (event) => {
+    if (interactionState.brushEnabled || event.defaultPrevented) return;
+
+    const [sx, sy] = d3.pointer(event, svg.node());
+    const [x, y] = interactionState.currentTransform.invert([sx, sy]);
+    const nearest = pointQuadtree.find(x, y, 24);
+
+    if (!nearest) {
+      interactionState.selectedIds.clear();
+      renderSelection(points);
+      tooltip.attr("hidden", true);
+      return;
+    }
+
+    setSingleSelection(nearest, points);
+  });
 
   const zoomBehavior = d3.zoom()
     .scaleExtent([1, 6])
     .translateExtent([[-300, -220], [WIDTH + 300, HEIGHT + 220]])
     .extent([[0, 0], [WIDTH, HEIGHT]])
     .on("zoom", (event) => {
+      interactionState.currentTransform = event.transform;
       viewport.attr("transform", event.transform);
     });
 
@@ -170,6 +334,8 @@ d3.json(MS_GEOJSON_URL).then((geojson) => {
   zoomResetButton.on("click", () => {
     svg.transition().duration(260).call(zoomBehavior.transform, d3.zoomIdentity);
   });
+
+  updateSelectionSummary();
 }).catch((err) => {
   console.error("Erro ao carregar mapa de MS:", err);
   svg.append("text")

@@ -12,8 +12,8 @@
     <header class="header">
       <h1>UPs Mais Requisitadas</h1>
       <p>
-        Visualizacao em D3 com mapa real do Mato Grosso do Sul (GeoJSON), pontos com tamanho por ocorrencias
-        e navegacao interativa (zoom e pan).
+        Visualizacao em D3 conectada a dados reais de UPs no Mato Grosso do Sul, com foco em comparacao de
+        ocorrencias e interacoes de exploracao (picking, dragging, brushing e zoom/pan).
       </p>
     </header>
 
@@ -22,6 +22,7 @@
       <div class="map-controls" aria-label="Controles do mapa">
         <button id="zoom-in" type="button" aria-label="Aproximar">+</button>
         <button id="zoom-out" type="button" aria-label="Afastar">-</button>
+        <button id="brush-toggle" type="button" aria-label="Ativar selecao por area" aria-pressed="false">Brush</button>
         <button id="zoom-reset" type="button" aria-label="Resetar zoom">Reset</button>
       </div>
       <div id="tooltip" class="tooltip" hidden></div>
@@ -29,11 +30,19 @@
 
     <aside class="legend" aria-label="Legenda de cores">
       <h2>Legenda</h2>
+      <p class="legend-goal">
+        Objetivo: mostrar quais UPs concentram mais ocorrencias e permitir investigacao por ponto, arrasto e
+        selecao por area.
+      </p>
       <ul>
         <li><span class="dot low"></span>Azul: 1-10 ocorrencias</li>
         <li><span class="dot medium"></span>Amarelo: 11-25 ocorrencias</li>
         <li><span class="dot high"></span>Vermelho: 26-60 ocorrencias</li>
       </ul>
+      <p class="legend-interactions">
+        Picking: clique em um ponto. Dragging: clique e arraste um ponto. Brushing: ative o botao Brush e arraste no mapa.
+      </p>
+      <p id="selection-summary" class="selection-summary">Selecionados: 0 de 12 UPs</p>
     </aside>
   </main>
 

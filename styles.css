@@ -120,6 +120,20 @@ body {
   filter: drop-shadow(0 3px 8px #1a365d55);
 }
 
+.up-point.is-selected .up-point-outer {
+  stroke: #111827;
+  stroke-width: 3.6;
+}
+
+.up-point.is-muted {
+  opacity: 0.18;
+}
+
+.up-point.is-dragging .up-point-outer {
+  stroke: #111827;
+  stroke-dasharray: 4 2;
+}
+
 .up-point-core {
   pointer-events: none;
 }
@@ -170,6 +184,22 @@ body {
   transform: translateY(1px);
 }
 
+.map-controls button.is-active {
+  background: #1f2937;
+  color: #f8fafc;
+  border-color: #111827;
+}
+
+.brush-layer .selection {
+  fill: #2563eb2b;
+  stroke: #2563eb;
+  stroke-width: 1.4;
+}
+
+.brush-layer .overlay {
+  cursor: crosshair;
+}
+
 .legend {
   background: var(--surface);
   border: 1px solid #d8dee8;
@@ -181,6 +211,21 @@ body {
 .legend h2 {
   margin: 0 0 8px;
   font-size: 1rem;
+}
+
+.legend-goal,
+.legend-interactions,
+.selection-summary {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.35;
+}
+
+.selection-summary {
+  margin: 12px 0 0;
+  color: #1f2937;
+  font-weight: 700;
 }
 
 .legend ul {
