@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UPs Mais Requisitadas</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+</head>
+<body>
+  <main class="layout">
+    <header class="header">
+      <h1>UPs Mais Requisitadas</h1>
+      <p>
+        Visualizacao em D3 com mapa real do Mato Grosso do Sul (GeoJSON), pontos com tamanho por ocorrencias
+        e navegacao interativa (zoom e pan).
+      </p>
+    </header>
+
+    <section class="card">
+      <svg id="chart" viewBox="0 0 1200 760" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Mapa do Mato Grosso do Sul com pontos de UP"></svg>
+      <div class="map-controls" aria-label="Controles do mapa">
+        <button id="zoom-in" type="button" aria-label="Aproximar">+</button>
+        <button id="zoom-out" type="button" aria-label="Afastar">-</button>
+        <button id="zoom-reset" type="button" aria-label="Resetar zoom">Reset</button>
+      </div>
+      <div id="tooltip" class="tooltip" hidden></div>
+    </section>
+
+    <aside class="legend" aria-label="Legenda de cores">
+      <h2>Legenda</h2>
+      <ul>
+        <li><span class="dot low"></span>Azul: 1-10 ocorrencias</li>
+        <li><span class="dot medium"></span>Amarelo: 11-25 ocorrencias</li>
+        <li><span class="dot high"></span>Vermelho: 26-60 ocorrencias</li>
+      </ul>
+    </aside>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
