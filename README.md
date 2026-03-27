@@ -11,7 +11,7 @@
 
 #### Abrir com Live Server
 
-Se estiver usando VS Code:
+Abra o VS Code:
 
 - instale a extensao `Live Server`;
 - clique com o botao direito em `index.html`;
