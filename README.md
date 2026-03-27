@@ -9,7 +9,7 @@
 
 ### Como rodar o projeto
 
-##### Abrir com Live Server
+#### Abrir com Live Server
 
 Se estiver usando VS Code:
 
@@ -19,7 +19,7 @@ Se estiver usando VS Code:
 
 ### Alteracoes em relacao a versao anterior
 
-##### 1. Fonte de dados
+#### 1. Fonte de dados
 
 Antes:
 - as UPs estavam declaradas diretamente em `app.js`.
@@ -28,7 +28,7 @@ Agora:
 - os dados sao carregados de `data/ups-ms.json`.
 - os valores de ocorrencias, latitude e longitude sao normalizados na carga.
 
-##### 2. Interface
+#### 2. Interface
 
 Antes:
 - a interface era mais simples e sem resumo visual dos dados.
@@ -39,7 +39,7 @@ Agora:
 - a legenda foi reescrita com instrucoes mais claras de uso.
 - foi adicionado um texto complementar para detalhar a selecao atual.
 
-##### 3. Interacoes
+#### 3. Interacoes
 
 Antes:
 - o mapa tinha um comportamento de navegacao mais basico.
@@ -50,7 +50,7 @@ Agora:
 - o menu de contexto foi bloqueado sobre o mapa para nao interromper o pan.
 - o picking por proximidade passou a exibir tooltip mesmo ao clicar em area vazia proxima de uma UP.
 
-##### 4. Visual e responsividade
+#### 4. Visual e responsividade
 
 Antes:
 - o layout tinha menos elementos de apoio visual.
