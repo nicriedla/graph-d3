@@ -1,0 +1,14 @@
+[
+  { "up": "UP-CampoGrande", "occurrences": 9, "lat": -20.4697, "lon": -54.6201 },
+  { "up": "UP-Corumba", "occurrences": 7, "lat": -19.0094, "lon": -57.6533 },
+  { "up": "UP-Paranaiba", "occurrences": 10, "lat": -19.6774, "lon": -51.1909 },
+  { "up": "UP-Dourados", "occurrences": 14, "lat": -22.2231, "lon": -54.8120 },
+  { "up": "UP-TresLagoas", "occurrences": 17, "lat": -20.7874, "lon": -51.7037 },
+  { "up": "UP-Coxim", "occurrences": 25, "lat": -18.5031, "lon": -54.7503 },
+  { "up": "UP-PontaPora", "occurrences": 27, "lat": -22.5361, "lon": -55.7256 },
+  { "up": "UP-Aquidauana", "occurrences": 33, "lat": -20.4715, "lon": -55.7877 },
+  { "up": "UP-Jardim", "occurrences": 41, "lat": -21.4803, "lon": -56.1381 },
+  { "up": "UP-Bonito", "occurrences": 49, "lat": -21.1261, "lon": -56.4836 },
+  { "up": "UP-Navirai", "occurrences": 32, "lat": -23.066, "lon": -54.1993 },
+  { "up": "UP-Amambai", "occurrences": 58, "lat": -23.1063, "lon": -55.2253 }
+]

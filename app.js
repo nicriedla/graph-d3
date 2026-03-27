@@ -1,28 +1,13 @@
 const WIDTH = 1200;
 const HEIGHT = 760;
 const MS_GEOJSON_URL = "https://raw.githubusercontent.com/tbrugz/geodata-br/master/geojson/geojs-50-mun.json";
+const UPS_DATA_URL = "data/ups-ms.json";
 
 const COLORS = {
   high: "#d93025",
   medium: "#fbbc04",
   low: "#4285f4"
 };
-
-// UPs distribuidas no MS com ocorrencias dentro das faixas: 1-10, 11-25 e 26-60.
-const UP_POINTS = [
-  { up: "UP-CampoGrande", occurrences: 9, lat: -20.4697, lon: -54.6201 },
-  { up: "UP-Corumba", occurrences: 7, lat: -19.0094, lon: -57.6533 },
-  { up: "UP-Paranaiba", occurrences: 10, lat: -19.6774, lon: -51.1909 },
-  { up: "UP-Dourados", occurrences: 14, lat: -22.2231, lon: -54.8120 },
-  { up: "UP-TresLagoas", occurrences: 17, lat: -20.7874, lon: -51.7037 },
-  { up: "UP-Coxim", occurrences: 25, lat: -18.5031, lon: -54.7503 },
-  { up: "UP-PontaPora", occurrences: 27, lat: -22.5361, lon: -55.7256 },
-  { up: "UP-Aquidauana", occurrences: 33, lat: -20.4715, lon: -55.7877 },
-  { up: "UP-Jardim", occurrences: 41, lat: -21.4803, lon: -56.1381 },
-  { up: "UP-Bonito", occurrences: 49, lat: -21.1261, lon: -56.4836 },
-  { up: "UP-Navirai", occurrences: 32, lat: -23.0660, lon: -54.1993 },
-  { up: "UP-Amambai", occurrences: 58, lat: -23.1063, lon: -55.2253 }
-];
 
 const svg = d3.select("#chart");
 const tooltip = d3.select("#tooltip");
@@ -31,6 +16,11 @@ const zoomOutButton = d3.select("#zoom-out");
 const zoomResetButton = d3.select("#zoom-reset");
 const brushToggleButton = d3.select("#brush-toggle");
 const selectionSummary = d3.select("#selection-summary");
+const selectionDetail = d3.select("#selection-detail");
+const statTotal = d3.select("#stat-total");
+const statLow = d3.select("#stat-low");
+const statMedium = d3.select("#stat-medium");
+const statHigh = d3.select("#stat-high");
 const viewport = svg.append("g").attr("class", "viewport");
 const mapLayer = viewport.append("g").attr("class", "map-layer");
 const pointLayer = viewport.append("g").attr("class", "point-layer");
@@ -49,10 +39,22 @@ mapLayer.append("rect")
   .attr("width", WIDTH)
   .attr("height", HEIGHT);
 
-d3.json(MS_GEOJSON_URL).then((geojson) => {
+d3.json(UPS_DATA_URL)
+  .then((upsData) => Promise.all([Promise.resolve(upsData), d3.json(MS_GEOJSON_URL)]))
+  .then(([upsData, geojson]) => {
   if (!geojson || !Array.isArray(geojson.features) || geojson.features.length === 0) {
     throw new Error("GeoJSON de MS invalido.");
   }
+  if (!Array.isArray(upsData) || upsData.length === 0) {
+    throw new Error("Dataset local de UPs invalido.");
+  }
+
+  const UP_POINTS = upsData.map((d) => ({
+    ...d,
+    occurrences: Number(d.occurrences),
+    lat: Number(d.lat),
+    lon: Number(d.lon)
+  }));
 
   const projection = d3.geoMercator().fitExtent(
     [[58, 36], [WIDTH - 58, HEIGHT - 36]],
@@ -94,6 +96,12 @@ d3.json(MS_GEOJSON_URL).then((geojson) => {
     })
     .attr("d", geoPath);
 
+  municipalitySelection
+    .transition()
+    .duration(650)
+    .delay((_, i) => Math.min(i * 4, 320))
+    .attr("opacity", 1);
+
   mapLayer.append("path")
     .datum({ type: "FeatureCollection", features: geojson.features })
     .attr("class", "ma-border")
@@ -130,15 +138,52 @@ d3.json(MS_GEOJSON_URL).then((geojson) => {
     .x((d) => d.x)
     .y((d) => d.y);
 
+  function animateCount(selection, targetValue, duration = 900) {
+    selection
+      .transition()
+      .duration(duration)
+      .tween("text", () => {
+        const interpolator = d3.interpolateNumber(0, targetValue);
+        return function tweenText(t) {
+          this.textContent = Math.round(interpolator(t));
+        };
+      });
+  }
+
+  function updateStats() {
+    animateCount(statTotal, UP_POINTS.length, 800);
+    animateCount(statLow, UP_POINTS.filter((d) => d.bucket === "low").length, 850);
+    animateCount(statMedium, UP_POINTS.filter((d) => d.bucket === "medium").length, 900);
+    animateCount(statHigh, UP_POINTS.filter((d) => d.bucket === "high").length, 950);
+  }
+
   function rebuildQuadtree() {
     pointQuadtree.removeAll(UP_POINTS);
     pointQuadtree.addAll(UP_POINTS);
   }
 
   rebuildQuadtree();
+  updateStats();
 
   function updateSelectionSummary() {
     selectionSummary.text(`Selecionados: ${interactionState.selectedIds.size} de ${UP_POINTS.length} UPs`);
+
+    if (interactionState.selectedIds.size === 0) {
+      selectionDetail.text("Nenhuma UP selecionada.");
+      return;
+    }
+
+    const selectedPoints = UP_POINTS
+      .filter((d) => interactionState.selectedIds.has(d.up))
+      .sort((a, b) => b.occurrences - a.occurrences);
+
+    const summary = selectedPoints
+      .slice(0, 3)
+      .map((d) => `${d.up} (${d.occurrences})`)
+      .join(", ");
+
+    const suffix = selectedPoints.length > 3 ? ` +${selectedPoints.length - 3} outras` : "";
+    selectionDetail.text(`Em foco: ${summary}${suffix}.`);
   }
 
   function renderSelection(points) {
@@ -281,7 +326,7 @@ d3.json(MS_GEOJSON_URL).then((geojson) => {
       .attr("aria-pressed", enabled ? "true" : "false");
 
     brushLayer.style("pointer-events", enabled ? "all" : "none");
-    svg.style("cursor", enabled ? "crosshair" : "grab");
+    svg.style("cursor", enabled ? "crosshair" : "default");
 
     if (!enabled) {
       brushLayer.call(brushBehavior.move, null);
@@ -309,9 +354,21 @@ d3.json(MS_GEOJSON_URL).then((geojson) => {
     }
 
     setSingleSelection(nearest, points);
+    tooltip
+      .html(`<strong>${nearest.up}</strong><br/>Picking por proximidade com quadtree<br/>Ocorrencias: ${nearest.occurrences}`)
+      .style("left", `${sx + 14}px`)
+      .style("top", `${sy + 14}px`)
+      .attr("hidden", null);
   });
 
   const zoomBehavior = d3.zoom()
+    .filter((event) => {
+      if (interactionState.brushEnabled) return false;
+      if (event.type === "dblclick") return false;
+      if (event.type === "wheel") return true;
+      if (event.type === "mousedown") return event.button === 2;
+      return true;
+    })
     .scaleExtent([1, 6])
     .translateExtent([[-300, -220], [WIDTH + 300, HEIGHT + 220]])
     .extent([[0, 0], [WIDTH, HEIGHT]])
@@ -321,7 +378,10 @@ d3.json(MS_GEOJSON_URL).then((geojson) => {
     });
 
   svg.call(zoomBehavior)
-    .on("dblclick.zoom", null);
+    .on("dblclick.zoom", null)
+    .on("contextmenu", (event) => {
+      event.preventDefault();
+    });
 
   zoomInButton.on("click", () => {
     svg.transition().duration(220).call(zoomBehavior.scaleBy, 1.22);

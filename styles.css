@@ -43,6 +43,45 @@ body {
   color: var(--muted);
 }
 
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.stat-card {
+  padding: 14px 16px;
+  border: 1px solid #d8dee8;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #ffffffee, #eef3f8d9);
+  box-shadow: 0 10px 24px #1f29370d;
+}
+
+.stat-label {
+  display: block;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.stat-value {
+  display: block;
+  margin-top: 6px;
+  font-size: clamp(1.6rem, 2vw + 0.8rem, 2.4rem);
+  line-height: 1;
+}
+
+.low-text {
+  color: var(--low);
+}
+
+.medium-text {
+  color: #b38300;
+}
+
+.high-text {
+  color: var(--high);
+}
+
 .card {
   position: relative;
   border: 1px solid #d8dee8;
@@ -50,6 +89,40 @@ body {
   background: var(--surface);
   overflow: hidden;
   box-shadow: 0 14px 32px #1f29371f;
+}
+
+.card-copy {
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  z-index: 2;
+  max-width: 420px;
+  padding: 14px 16px;
+  border: 1px solid #dbe3ee;
+  border-radius: 16px;
+  background: #fffffff0;
+  box-shadow: 0 8px 20px #1f293714;
+  backdrop-filter: blur(6px);
+}
+
+.card-copy h2 {
+  margin: 2px 0 8px;
+  font-size: clamp(1.1rem, 1.2vw + 0.8rem, 1.6rem);
+}
+
+.card-copy p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.card-eyebrow {
+  margin: 0;
+  color: #45617f;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 #chart {
@@ -74,6 +147,7 @@ body {
   fill: #f5f6f8;
   stroke: #d3d8df;
   stroke-width: 0.85;
+  opacity: 0;
   transition: fill 0.18s ease, stroke 0.18s ease;
 }
 
@@ -215,7 +289,8 @@ body {
 
 .legend-goal,
 .legend-interactions,
-.selection-summary {
+.selection-summary,
+.selection-detail {
   margin: 0 0 10px;
   color: var(--muted);
   font-size: 0.92rem;
@@ -277,7 +352,23 @@ body {
     padding: 12px;
   }
 
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .card-copy {
+    position: static;
+    max-width: none;
+    margin: 12px;
+  }
+
   .legend {
     width: 100%;
+  }
+}
+
+@media (max-width: 560px) {
+  .stats {
+    grid-template-columns: 1fr;
   }
 }

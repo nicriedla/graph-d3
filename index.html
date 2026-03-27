@@ -12,12 +12,39 @@
     <header class="header">
       <h1>UPs Mais Requisitadas</h1>
       <p>
-        Visualizacao em D3 conectada a dados reais de UPs no Mato Grosso do Sul, com foco em comparacao de
-        ocorrencias e interacoes de exploracao (picking, dragging, brushing e zoom/pan).
+        Visualizacao em D3 conectada a um conjunto de dados local sobre UPs no Mato Grosso do Sul, com foco em
+        identificar concentracoes de ocorrencias e explorar o mapa com picking, dragging, brushing e zoom/pan.
       </p>
     </header>
 
+    <section class="stats" aria-label="Resumo dos dados">
+      <article class="stat-card">
+        <span class="stat-label">Total de UPs</span>
+        <strong id="stat-total" class="stat-value">0</strong>
+      </article>
+      <article class="stat-card">
+        <span class="stat-label">Faixa baixa</span>
+        <strong id="stat-low" class="stat-value low-text">0</strong>
+      </article>
+      <article class="stat-card">
+        <span class="stat-label">Faixa media</span>
+        <strong id="stat-medium" class="stat-value medium-text">0</strong>
+      </article>
+      <article class="stat-card">
+        <span class="stat-label">Faixa alta</span>
+        <strong id="stat-high" class="stat-value high-text">0</strong>
+      </article>
+    </section>
+
     <section class="card">
+      <div class="card-copy">
+        <p class="card-eyebrow">Objetivo da visualizacao</p>
+        <h2>Quais UPs concentram mais ocorrencias no estado</h2>
+        <p>
+          O tamanho e a cor dos pontos representam o volume de ocorrencias. Clique para selecionar, arraste para
+          reposicionar uma UP, use Brush para selecionar por area e mova o mapa com o botao direito do mouse.
+        </p>
+      </div>
       <svg id="chart" viewBox="0 0 1200 760" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Mapa do Mato Grosso do Sul com pontos de UP"></svg>
       <div class="map-controls" aria-label="Controles do mapa">
         <button id="zoom-in" type="button" aria-label="Aproximar">+</button>
@@ -31,8 +58,8 @@
     <aside class="legend" aria-label="Legenda de cores">
       <h2>Legenda</h2>
       <p class="legend-goal">
-        Objetivo: mostrar quais UPs concentram mais ocorrencias e permitir investigacao por ponto, arrasto e
-        selecao por area.
+        Contexto: cada circulo representa uma UP do conjunto de dados. Quanto maior o ponto, maior o numero de
+        ocorrencias registradas para aquela unidade.
       </p>
       <ul>
         <li><span class="dot low"></span>Azul: 1-10 ocorrencias</li>
@@ -40,9 +67,12 @@
         <li><span class="dot high"></span>Vermelho: 26-60 ocorrencias</li>
       </ul>
       <p class="legend-interactions">
-        Picking: clique em um ponto. Dragging: clique e arraste um ponto. Brushing: ative o botao Brush e arraste no mapa.
+        Picking: clique em um ponto ou em uma area vazia proxima para detectar a UP mais perto. Dragging: clique e
+        arraste um ponto. Brushing: ative o botao Brush e arraste no mapa. Pan: segure o botao direito do mouse e
+        arraste. Zoom: use os botoes do painel ou a roda do mouse.
       </p>
       <p id="selection-summary" class="selection-summary">Selecionados: 0 de 12 UPs</p>
+      <p id="selection-detail" class="selection-detail">Nenhuma UP selecionada.</p>
     </aside>
   </main>
 
